@@ -1,6 +1,7 @@
 import threading, tensorflow as tf, numpy as np, sys
 import numpy.linalg as la
-from utils import get_normalized_pitches
+from utils import *
+from music21 import chord
 '''
 ideas: reward for creating a fugue
 reward for avoiding awkward chords (iii64)
@@ -11,6 +12,8 @@ class PartWriter(object):
 	
 	def __init__(self, max_length):
 		self.max_length = max_length
+		self.chord_roll = np.zeros((max_length, 4), dtype=uint8)
+		self.current_index = 0
 		#todo
 		
 		self.build_model()
@@ -51,16 +54,13 @@ class PartWriter(object):
 		#TODO: put all checks here
 	
 	#chord = np.array
-	def check_spelling(self, chord):
-		copy = np.fromiter((lambda x: x % 12 for pitch in chord), chord.dtype, count=len(chord)) #applies mod 12 to all chord members
-		copy.sort()
-		
+	def check_spelling(self, chord):		
 		#if duplicates exist, then the chord should be a triad
-		if len(copy) != len(set(copy)):
-			#triad
+		if len(chord) != len(set(chord)):
+			if get_root_position_triad(copy) 
 			
 		else:
-			#7th chord
+			#must be 7th chord
 		
 	def check_leading_tone_doubling(self, chord):
 		#todo
@@ -116,4 +116,5 @@ class PartWriter(object):
 	def check_contrary_octaves(self, last_chord, this_chord):
 		#todo
 	
-	def 
+	def check_perfect_authentic_cadence(self, last_chord, this_chord):
+		

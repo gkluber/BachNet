@@ -26,4 +26,4 @@ def PerfectAuthenticCadence(Cadence):
 		return "Perfect Authentic Cadence"
 	
 	def check(self, penultimate_chord, ultimate_chord):
-		
+		pass
