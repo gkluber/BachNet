@@ -7,7 +7,7 @@ flags.DEFINE_boolean("train",True,"If True, then train the model with the given 
 flags.DEFINE_boolean("ignore_checkpoint", False, "If True, then ignore previous checkpoints")
 flags.DEFINE_boolean("manual", False, "If True, then use manual mode for cart control")
 flags.DEFINE_boolean("save", True, "If True, then save the model")
-flags.DEFINE_float("learning_rate", 0.1, "Learning rate of the momentum optimizer")
+flags.DEFINE_float("learning_rate", 0.001, "Learning rate of the momentum optimizer")
 flags.DEFINE_float("beta1", 0.9, "Exponential decay rate for the first moment estimates")
 flags.DEFINE_float("beta2", 0.999, "Exponential decay rate for the second moment estimates")
 flags.DEFINE_float("discount_rate", 0.95, "Discount rate of the policy gradient algorithm")
