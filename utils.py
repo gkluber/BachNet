@@ -37,6 +37,8 @@ def remove_doubling(pitches):
 
 #returns None if the set of pitches is not a valid triad
 def get_root_position_triad(pitches):
+	if pitches.size > 3:
+		pitches = remove_doubling(pitches)
 	if is_root_position_triad(pitches):
 		return pitches
 	elif is_first_inversion_triad(pitches):
@@ -51,6 +53,7 @@ def get_root_position_triad(pitches):
 		while pitches[1] > pitches[0]:
 			pitches[1] -= 12
 		return np.array([pitches[2], pitches[0],pitches[1]])
+	return np.array([None])
 
 def get_root_position_seventh(pitches):
 	pass #TODO
@@ -71,6 +74,8 @@ def is_third_inversion_seventh(pitches):
 def is_root_position_triad(pitches):
 	if len(pitches) > 3:
 		pitches = remove_doubling(pitches)
+	if len(pitches) < 3:
+		return False
 	bassToThird = pitches[1] - pitches[2]
 	thirdToFifth = pitches[0] - pitches[1]
 	bassToFifth = pitches[0] - pitches[2]
@@ -79,6 +84,8 @@ def is_root_position_triad(pitches):
 def is_first_inversion_triad(pitches):
 	if len(pitches) > 3:
 		pitches = remove_doubling(pitches)
+	if len(pitches) < 3:
+		return False
 	bassToThird = pitches[1] - pitches[2]
 	thirdToFifth = pitches[0] - pitches[1]
 	bassToFifth = pitches[0] - pitches[2]
@@ -87,6 +94,8 @@ def is_first_inversion_triad(pitches):
 def is_second_inversion_triad(pitches):
 	if len(pitches) > 3:
 		pitches = remove_doubling(pitches)
+	if len(pitches) < 3:
+		return False
 	bassToThird = pitches[1] - pitches[2]
 	thirdToFifth = pitches[0] - pitches[1]
 	bassToFifth = pitches[0] - pitches[2]
@@ -122,7 +131,7 @@ def classify_triad(pitches, key_sig) -> int:
 			return 7
 		elif key_sig.mode=='major':
 			return 6
-	elif degree==11
+	elif degree==11:
 		return 7
 	
 	return 0 #error
