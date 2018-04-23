@@ -114,10 +114,10 @@ def check_direct_fifths_and_octaves(last_chord, this_chord) -> bool:
 def check_leading_tone_resolution(last_chord, this_chord, key_sig) -> bool:
 	result = True
 	if last_chord[0] % 12 == (key_sig.tonic.midi - 1)%12:
-		if this_chord[0] != key_sig.tonic.midi:
+		if this_chord[0] % 12  != key_sig.tonic.midi % 12:
 			result = False
 	if last_chord[3] % 12 == (key_sig.tonic.midi - 1)%12:
-		if this_chord[3] != key_sig.tonic.midi:
+		if this_chord[3] % 12  != key_sig.tonic.midi % 12:
 			result = False
 	
 	return result

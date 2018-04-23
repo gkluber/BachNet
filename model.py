@@ -8,8 +8,10 @@ from rules import reward
 from music21 import chord
 from music21 import key
 from music21 import roman
+from music21 import pitch
 import mido
 import time
+import math
 '''
 ideas: reward for creating a fugue
 reward for avoiding awkward chords (iii64)
@@ -95,7 +97,7 @@ class DQNPartWriter(object):
 		self.epochs = epochs
 		self.runs_per_update = runs_per_update
 		self.max_length = max_length #in quarter notes
-		self.n_measures = int(max_length / 4)
+		self.n_measures = math.ceil(max_length / 4)
 		
 		self.chord_roll = np.zeros((max_length,4), dtype=np.uint8)
 		self.last_chord_index = None
@@ -274,7 +276,7 @@ class DNNPartWriter(object):
 		
 		self.runs_per_update = runs_per_update
 		self.max_length = max_length #in quarter notes
-		self.n_measures = int(max_length / 4) # 4/4 time
+		self.n_measures = math.ceil(max_length / 4) # 4/4 time
 		
 		self.chord_roll = np.zeros((max_length,4), dtype=np.uint8)
 		self.last_chord_index = None
@@ -503,3 +505,107 @@ class DNNPartWriter(object):
 			new_chord = new_chord[:, 0]
 			set_last_chord(new_chord)
 		return np.copy(self.chord_roll)
+
+class AlgorithmicPartWriter(object):
+	def __init__(self, max_length, episodes):
+		self.max_length = max_length
+		self.episodes = episodes
+		
+		self.n_measures = math.ceil(max_length / 4) # 4/4 time
+		self.pitch_roll = np.empty((max_length,4), dtype=object) #use Note music21 class
+		self.chord_roll = np.empty((max_length), dtype=object)
+		self.last_pitches_index = None
+		
+	def generate_chords(self):
+		self.chord_roll.fill(None)
+		for i in range(self.max_length):
+			chord_roll[i] = self.generate_chord()
+		
+	def generate_chord(self):
+		if bool(rand.getrandbits(1)): #conditional chord generation
+			return roman.RomanNumeral(rand.randint(1,7), self.key_signature)
+		else: #use circle of fifths to generate the chord
+			return roman.RomanNumeral((chords[i-1].scaleDegree+4)%8, self.key_signature)
+		
+	def next_chord(self, chord_index): #called if the current chord cannot satisfy the rules of part-writing
+		chord = self.chord_roll[chord_index]
+		if chord.inversion()<2:
+			chord.inversion(chord.inversion()+1)
+		else:
+			self.chord_roll[chord_index] = self.generate_chord() #try a different chord
+	
+	def step(self, next_index): #next is of type RomanNumeral
+		chord = self.chord_roll[next_index]
+		possibilities = self.recursive_substep(3, chord, np.zeros((4), dtype=np.uint8))
+		while len(possibilities)==0:
+			next_chord = next_chord(next_index)
+		
+		return possibilities[0]
+	
+	def recursive_substep(self, voice_number, chord, pitches):
+		if voice_number==-1:
+			return pitches
+		pitch_set = []
+		for pitch in chord.pitches():
+			midi = pitch.midi - 24 if voice_number==3 else pitch.midi - 12*(pitch.octave + pitches[voice_number+1].octave)
+			while midi < 79:
+				copy = pitches.copy()
+				copy[voice_number] = midi
+				pitch_set.append(recursive_substep(voice_number - 1, copy, pitches))
+				midi += 12
+		
+		result = []
+		for combination in pitch_set:
+			if(check(combination)==17):
+				result.append(combination)
+		
+		return result
+
+	def last_chord(self):
+		if self.last_pitches_index is not None:
+			return self.pitch_roll[self.last_pitches_index] #returns array with size = 4
+		return None
+	
+	def is_last_chord(self):
+		return self.last_pitches_index == self.max_length - 2
+	
+	def set_last_chord(self, chord):
+		if self.last_pitches_index == None:	
+			self.last_pitches_index = 0
+		else:
+			self.last_pitches_index += 1
+		self.pitch_roll[self.last_pitches_index] = chord
+	
+	def reset_system(self):
+		self.last_pitches_index = 0
+		self.pitch_roll.fill(None)
+		
+		#get random key
+		self.key_signature = key.KeySignature(rand.randint(-7,7))
+		if bool(rand.getrandbits(1)):
+			self.key_signature = self.key_signature.asKey(mode="major")
+		else:
+			self.key_signature = self.key_signature.asKey(mode="minor")
+		
+		#start with the I or i chord in root position with the root in the 3rd octave
+		tonic = self.key_signature.tonic
+		tonic.octave = 3
+		
+		self.generate_chords()
+		self.chord_roll[0] = roman.RomanNumeral(1, self.key_signature)
+		
+		self.pitch_roll[0][0] = pitch.Pitch(tonic.ps+12)
+		self.pitch_roll[0][1] = pitch.Pitch(tonic.ps+7)
+		self.pitch_roll[0][2] = pitch.Pitch(tonic.ps+4) if self.key_signature=="major" else pitch.Pitch(tonic.ps+3)
+		self.pitch_roll[0][3] = pitch.Pitch(tonic.ps)
+		
+		
+	
+	def run(self):
+		for episode in range(self.episodes):
+			step_index = 1
+			while step_index < max_length:
+				pitches = self.step(step_index)
+				self.pitch_roll[step_index] = pitches
+			
+			

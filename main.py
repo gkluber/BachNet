@@ -24,15 +24,18 @@ def main(_):
 		os.makedirs(FLAGS.checkpoint_dir)
 	
 	with tf.Session() as sess:
-		model = DNNPartWriter(sess, FLAGS.ignore_checkpoint, FLAGS.save, FLAGS.epochs, FLAGS.discount_rate,
+		'''model = DNNPartWriter(sess, FLAGS.ignore_checkpoint, FLAGS.save, FLAGS.epochs, FLAGS.discount_rate,
 							FLAGS.runs_per_update, FLAGS.max_length, FLAGS.num_units, FLAGS.learning_rate,
 							FLAGS.momentum, FLAGS.iterations_per_save, FLAGS.test_episodes, FLAGS.checkpoint_dir)
-		
 		if FLAGS.train:
 			model.train()
 		else:
 			model.load_model()
 			model.test()
+		'''
+		model = AlgorithmicPartWriter(FLAGS.max_length, FLAGS.test_episodes)
+		
+		model.run()
 
 if __name__ == '__main__':
 	tf.app.run()
